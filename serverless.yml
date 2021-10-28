@@ -1,0 +1,155 @@
+org: steinx
+app: trend-micro-test
+service: trend-micro-test
+
+package:
+  include:
+    - "!src/**/__snapshots__/*"
+    - "!src/**/__tests__/*"
+    - "!src/**/__mocks__/*"
+    - "!src/**/*.test.js"
+  exclude:
+    - ./*
+    - .localstack/**
+    - coverage/**
+    - pipelines/**
+    - serverless/**
+    - sandbox/**
+    - test/**
+    - env/**
+
+plugins:
+  - serverless-plugin-warmup
+  - serverless-offline-lambda
+  - serverless-offline
+  - serverless-bundle
+
+custom:
+  serverless-offline:
+    corsAllowHeaders: "Content-Type,*"
+    corsAllowOrigin: http://localhost:3000
+    corsDisallowCredentials: false
+    disableCookieValidation: true
+    noAuth: true
+    profile: personal
+    port: 8081
+  warmup:
+    schedule: "rate(10 minutes)"
+    timeout: 30
+    prewarm: true # Run WarmUp immediately after a deployment
+
+provider:
+  name: aws
+  runtime: nodejs14.x
+  stage: ${opt:stage, 'local'}
+  region: ${opt:region, 'ap-southeast-2'}
+  endpointType: REGIONAL
+  apiGateway:
+    minimumCompressionSize: 1024
+  apiKeys:
+    - test-key
+  environment: ${file(./env/${self:provider.stage}.yml):environment}
+  logs:
+    restApi: true
+  iamRoleStatements:
+    - Effect: "Allow"
+      Action:
+        - "lambda:InvokeFunction"
+      Resource:
+        - "*"
+    - Effect: "Allow"
+      Action:
+        - "apigateway:GET"
+        - "apigateway:POST"
+      Resource:
+        - "arn:aws:apigateway:${self:provider.region}::/apikeys"
+    - Effect: Allow
+      Action:
+        - ec2:DescribeNetworkInterfaces
+        - ec2:DescribeSecurityGroups
+      Resource:
+        - "*"
+    - Effect: "Allow"
+      Action:
+        - logs:CreateLogGroup
+        - logs:CreateLogStream
+        - logs:DescribeLogGroups
+        - logs:DescribeLogStreams
+        - logs:PutLogEvents
+        - logs:GetLogEvents
+        - logs:FilterLogEvents
+      Resource:
+        - "*"
+
+functions:
+  auth:
+    handler: src/auth/index.handler
+  get-ec2-secgroups:
+    handler: src/get-ec2-secgroups/index.handler
+    timeout: 30
+    events:
+      - http:
+          path: /get-secgroups
+          method: get
+          cors: true
+          private: true
+          authorizer:
+            name: auth
+            identitySource: method.request.header.x-api-key
+            type: request
+  
+resources:
+  Resources:
+    # This response is needed for custom authorizer failures cors support
+    GatewayResponse:
+      Type: "AWS::ApiGateway::GatewayResponse"
+      Properties:
+        ResponseParameters:
+          gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
+          gatewayresponse.header.Access-Control-Allow-Headers: "'*'"
+        ResponseType: EXPIRED_TOKEN
+        RestApiId:
+          Ref: "ApiGatewayRestApi"
+        StatusCode: "401"
+    AuthFailureGatewayResponse:
+      Type: "AWS::ApiGateway::GatewayResponse"
+      Properties:
+        ResponseParameters:
+          gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
+          gatewayresponse.header.Access-Control-Allow-Headers: "'*'"
+        ResponseType: UNAUTHORIZED
+        RestApiId:
+          Ref: "ApiGatewayRestApi"
+        StatusCode: "401"
+    AuthGatewayAuthorizer:
+      Type: AWS::ApiGateway::Authorizer
+      Properties:
+        RestApiId:
+          Ref: ApiGatewayRestApi
+        Type: REQUEST
+        IdentitySource: method.request.header.Authorization
+        Name: customAuth
+        AuthorizerUri:
+          Fn::Join:
+            - ""
+            - - "arn:aws:apigateway:"
+              - Ref: "AWS::Region"
+              - ":lambda:path/2015-03-31/functions/"
+              - Fn::GetAtt:
+                  - AuthLambdaFunction
+                  - Arn
+              - /invocations
+    AuthLambdaPermissionApiGateway:
+      Type: "AWS::Lambda::Permission"
+      Properties:
+        FunctionName:
+          Fn::GetAtt:
+            - AuthLambdaFunction
+            - Arn
+        Action: "lambda:InvokeFunction"
+        Principal:
+          Fn::Join:
+            - ""
+            - - apigateway.
+              - Ref: "AWS::URLSuffix"
+   
