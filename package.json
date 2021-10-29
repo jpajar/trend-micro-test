@@ -26,7 +26,6 @@
         "eslint-plugin-jest": "24.1.0",
         "eslint-plugin-node": "11.1.0",
         "eslint-plugin-promise": "4.2.1",
-        "jest": "25.5.4",
         "jest-extended": "0.11.5",
         "nodemon": "^2.0.2",
         "serverless": "1.73.1",

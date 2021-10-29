@@ -16,13 +16,13 @@ export const handler = async (event) => {
         .getApiKeys({ includeValues: true, limit: 500 })
         .promise();
 
-    let sender = _.find(keys.items, ['value', apiKey]);
-    if (_.isNil(sender))
+    const key = _.find(keys.items, ['value', apiKey]);
+    if (_.isNil(key))
         throw new Error("Unauthorized");
 
-    console.info(`event from : ${sender.name}`);
+    console.info(`event from : ${key.name}`);
     return {
-        principalId: sender.name,
+        principalId: key.name,
         usageIdentifierKey: apiKey,
         policyDocument: {
             Version: "2012-10-17",
