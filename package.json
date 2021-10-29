@@ -30,7 +30,10 @@
         "eslint-plugin-jest": "24.1.0",
         "eslint-plugin-node": "11.1.0",
         "eslint-plugin-promise": "4.2.1",
+<<<<<<< HEAD
         "jest": "^27.3.1",
+=======
+>>>>>>> 173d9a24ae85282b04d1079bcc924bf0d24ea88b
         "jest-extended": "0.11.5",
         "nodemon": "^2.0.2",
         "serverless": "1.73.1",
