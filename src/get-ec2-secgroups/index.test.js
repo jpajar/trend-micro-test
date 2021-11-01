@@ -15,4 +15,17 @@ describe('get-ec2-secgroups', () => {
 
         AWSMock.restore('EC2');
     });
+
+    it('should return 401 error', async () => {
+        // Overwriting DynamoDB.getItem()
+        AWSMock.setSDKInstance(AWS);
+        console.log(handler);
+        AWSMock.mock('EC2', 'describeSecurityGroups', (params, callback) => {
+            console.log('EC2', 'describeSecurityGroups', 'mock called');
+            callback('Test Error', null);
+        })
+        expect(await handler('test')).toStrictEqual({ "error": "Test Error", "statusCode": "400" });
+
+        AWSMock.restore('EC2');
+    });
 });

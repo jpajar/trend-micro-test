@@ -6,7 +6,6 @@ package:
   include:
     - "!src/**/__snapshots__/*"
     - "!src/**/__tests__/*"
-    - "!src/**/__mocks__/*"
     - "!src/**/*.test.js"
   exclude:
     - ./*
@@ -14,9 +13,6 @@ package:
     - coverage/**
     - pipelines/**
     - serverless/**
-    - sandbox/**
-    - test/**
-    - env/**
 
 plugins:
   - serverless-plugin-warmup

@@ -5,7 +5,7 @@
     "main": "index.js",
     "scripts": {
         "deploy": "serverless deploy",
-        "test": "jest --runInBand",
+        "test": "jest --runInBand --coverage",
         "lint": "eslint ./",
         "lint-fix": "npm run lint -- --fix",
         "start": "dotenv -- nodemon --watch src --exec \"serverless offline start\""
@@ -24,16 +24,14 @@
         "aws-sdk-mock": "^5.4.0",
         "babel-jest": "^27.3.1",
         "dotenv-cli": "^3.2.0",
-        "eslint": "7.13.0",
-        "eslint-config-standard": "16.0.1",
-        "eslint-plugin-import": "2.22.1",
+        "eslint": "^7.32.0",
+        "eslint-config-google": "^0.14.0",
+        "eslint-config-standard": "^16.0.3",
+        "eslint-plugin-import": "^2.25.2",
         "eslint-plugin-jest": "24.1.0",
-        "eslint-plugin-node": "11.1.0",
-        "eslint-plugin-promise": "4.2.1",
-<<<<<<< HEAD
+        "eslint-plugin-node": "^11.1.0",
+        "eslint-plugin-promise": "^5.1.1",
         "jest": "^27.3.1",
-=======
->>>>>>> 173d9a24ae85282b04d1079bcc924bf0d24ea88b
         "jest-extended": "0.11.5",
         "nodemon": "^2.0.2",
         "serverless": "1.73.1",
